@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>SADEE GAMING AI PRO</title>
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+height:100vh;
+font-family:Arial,sans-serif;
+background:radial-gradient(circle at top,#153b66,#000);
+color:white;
+overflow:hidden;
+}
+
+
+body:before{
+content:"";
+position:fixed;
+inset:0;
+background:linear-gradient(120deg,transparent,rgba(0,255,255,.2),transparent);
+animation:move 5s infinite;
+pointer-events:none;
+}
+
+
+@keyframes move{
+
+50%{
+transform:translateX(50px);
+opacity:.5;
+}
+
+}
+
+
+header{
+
+padding:18px;
+text-align:center;
+font-size:26px;
+font-weight:bold;
+
+background:rgba(255,255,255,.08);
+
+backdrop-filter:blur(20px);
+
+border-bottom:2px solid cyan;
+
+text-shadow:0 0 20px cyan;
+
+}
+
+
+
+.status{
+
+text-align:center;
+padding:8px;
+color:#00ff99;
+
+}
+
+
+
+#chat{
+
+height:70vh;
+overflow:auto;
+padding:15px;
+
+}
+
+
+
+.msg{
+
+max-width:85%;
+padding:13px;
+margin:12px;
+border-radius:20px;
+animation:show .3s;
+
+}
+
+
+
+@keyframes show{
+
+from{
+
+opacity:0;
+transform:translateY(20px);
+
+}
+
+}
+
+
+
+.me{
+
+margin-left:auto;
+
+background:#00eaff;
+
+color:#000;
+
+box-shadow:0 0 20px cyan;
+
+}
+
+
+
+.bot{
+
+background:rgba(255,255,255,.12);
+
+border:1px solid cyan;
+
+box-shadow:0 0 20px #00ffff55;
+
+}
+
+
+
+.time{
+
+font-size:10px;
+opacity:.7;
+
+}
+
+
+
+
+.bar{
+
+position:fixed;
+
+bottom:15px;
+
+left:10px;
+
+right:10px;
+
+display:flex;
+
+align-items:center;
+
+gap:8px;
+
+padding:10px;
+
+
+background:rgba(255,255,255,.1);
+
+
+backdrop-filter:blur(20px);
+
+
+border-radius:35px;
+
+
+border:2px solid cyan;
+
+
+box-shadow:0 0 25px cyan;
+
+}
+
+
+
+
+#msg{
+
+flex:1;
+
+padding:14px;
+
+border-radius:30px;
+
+
+background:#000;
+
+
+color:white;
+
+
+border:1px solid cyan;
+
+
+outline:none;
+
+}
+
+
+
+.icon{
+
+width:45px;
+
+height:45px;
+
+border-radius:50%;
+
+background:#111;
+
+border:1px solid cyan;
+
+color:white;
+
+font-size:20px;
+
+}
+
+
+
+.send{
+
+width:60px;
+
+height:60px;
+
+border-radius:50%;
+
+border:0;
+
+background:#00ffff;
+
+font-size:25px;
+
+box-shadow:0 0 30px cyan;
+
+}
+
+
+
+input[type=file]{
+
+display:none;
+
+}
+
+
+
+#preview img{
+
+position:fixed;
+
+bottom:105px;
+
+left:15px;
+
+width:90px;
+
+height:90px;
+
+object-fit:cover;
+
+border-radius:15px;
+
+border:2px solid cyan;
+
+box-shadow:0 0 25px cyan;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<header>
+🎮 SADEE GAMING AI PRO
+</header>
+
+
+<div class="status">
+🇱🇰powerd by sadew pehesara🇱🇰
+</div>
+
+
+<div id="chat"></div>
+
+
+<div id="preview"></div>
+
+
+
+<div class="bar">
+
+
+<label class="icon">
+
+📷
+
+<input id="img" type="file" accept="image/*">
+
+</label>
+
+
+
+<button class="icon" onclick="voice()">
+
+🎤
+
+</button>
+
+
+
+<input id="msg" placeholder="Ask SADEE AI...">
+
+
+
+<button class="send" onclick="send()">
+
+➤
+
+</button>
+
+
+
+</div>
+<script>
+
+const API_KEY="AQ.Ab8RN6LrqF1TO-MDl_kVKom7iM4h2te4pEWGR_3UeTaa_otF_Q";
+
+
+const chat=document.getElementById("chat");
+const msg=document.getElementById("msg");
+const img=document.getElementById("img");
+const preview=document.getElementById("preview");
+
+
+let imageBase64="";
+let imageType="";
+
+
+
+// Load old chat memory
+
+chat.innerHTML = localStorage.SADEE_MEMORY || "";
+
+
+
+// Save chat
+
+function saveChat(){
+
+localStorage.SADEE_MEMORY = chat.innerHTML;
+
+}
+
+
+
+
+function getTime(){
+
+let d=new Date();
+
+return d.getHours()+":"+
+String(d.getMinutes()).padStart(2,"0");
+
+}
+
+
+
+
+function addMessage(text,type){
+
+
+let div=document.createElement("div");
+
+div.className="msg "+type;
+
+
+
+div.innerHTML =
+
+(type=="me" ? "👤 " : "🤖 ")
++
+text+
+
+"<div class='time'>"
++
+getTime()
++
+"</div>";
+
+
+
+chat.appendChild(div);
+
+chat.scrollTop=chat.scrollHeight;
+
+
+saveChat();
+
+}
+
+
+
+
+
+// SEND AI MESSAGE
+
+async function send(){
+
+
+let text=msg.value.trim();
+
+
+
+if(!text && !imageBase64)return;
+
+
+
+addMessage(
+text || "📷 Image",
+"me"
+);
+
+
+
+msg.value="";
+
+
+
+let loading=document.createElement("div");
+
+loading.className="msg bot";
+
+loading.innerText="🤖 SADEE AI Thinking...";
+
+chat.appendChild(loading);
+
+
+
+
+let history=[];
+
+
+
+document.querySelectorAll(".msg").forEach(m=>{
+
+
+history.push({
+
+role:m.classList.contains("me")
+?
+"user"
+:
+"model",
+
+parts:[
+
+{
+
+text:m.innerText
+
+}
+
+]
+
+});
+
+});
+
+
+
+
+let parts=[];
+
+
+
+if(text){
+
+parts.push({
+
+text:text
+
+});
+
+}
+
+
+
+
+if(imageBase64){
+
+parts.push({
+
+inline_data:{
+
+mime_type:imageType,
+
+data:imageBase64
+
+}
+
+});
+
+}
+
+
+
+
+history.push({
+
+role:"user",
+
+parts:parts
+
+});
+
+
+
+
+
+try{
+
+
+let response=await fetch(
+
+"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="+API_KEY,
+
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+
+body:JSON.stringify({
+
+contents:history
+
+})
+
+
+}
+
+);
+
+
+
+let data=await response.json();
+
+
+
+loading.remove();
+
+
+
+let answer =
+
+data?.candidates?.[0]
+?.content?.parts?.[0]
+?.text;
+
+
+
+if(!answer){
+
+answer="❌ "+(data.error?.message || "No response");
+
+}
+
+
+
+addMessage(answer,"bot");
+
+
+
+speak(answer);
+
+
+
+imageBase64="";
+
+imageType="";
+
+preview.innerHTML="";
+
+
+
+}
+
+catch(e){
+
+
+loading.remove();
+
+
+addMessage(
+
+
+
+
+
+);
+
+
+}
+
+
+}
+
+// ENTER TO SEND
+
+msg.onkeydown=function(e){
+
+if(e.key==="Enter"){
+
+send();
+
+}
+
+}
+
+
+
+// IMAGE SELECT + PREVIEW
+
+img.onchange=function(e){
+
+
+let file=e.target.files[0];
+
+
+if(!file)return;
+
+
+
+imageType=file.type;
+
+
+
+let reader=new FileReader();
+
+
+
+reader.onload=function(){
+
+
+let result=reader.result;
+
+
+
+imageBase64=result.split(",")[1];
+
+
+
+preview.innerHTML=
+
+"<img src='"+result+"'>";
+
+
+};
+
+
+
+reader.readAsDataURL(file);
+
+
+
+};
+
+
+
+
+
+
+// VOICE INPUT
+
+function voice(){
+
+
+let Speech=
+
+window.SpeechRecognition ||
+
+window.webkitSpeechRecognition;
+
+
+
+if(!Speech){
+
+alert("Voice not supported");
+
+return;
+
+}
+
+
+
+let rec=new Speech();
+
+
+rec.lang="en-US";
+
+
+
+rec.onresult=function(e){
+
+
+msg.value=
+
+e.results[0][0].transcript;
+
+
+};
+
+
+
+rec.start();
+
+
+
+}
+
+
+
+
+
+// AI VOICE REPLY
+
+function speak(text){
+
+
+let speech=new SpeechSynthesisUtterance(text);
+
+
+speech.lang="en-US";
+
+
+speech.rate=1;
+
+
+speechSynthesis.speak(speech);
+
+
+}
+
+
+
+</script>
+
+
+</body>
+
+</html>  
